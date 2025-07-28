@@ -1,0 +1,30 @@
+Amazon Workspaces:
+	AWS managed desktop as a servce (DAAS).
+	Monthly or hourly pricing.
+	Workspaces uses directory service for authentication and user management so it is a requirement for using workspaces.
+	Workspaces use ENI in a VPC for VPC Networking.
+	Can access both FSx and EC2 Windows resources or on premises VPN and DAX resources.
+	have System volumes and User volumes and allows EBS KMS (customer managed) encryption.
+	Workspaces and associated DS don't run in the customer managed VPCs rather AWS managed VPCs. Customers connect via Wkspces Client App using shared gateways (authentication/streaming). use ENIs injected into customer managed VPCs. they can then use the normal AWS services such as NAT gateways, IGWs, DAX etc.
+	* Workspaces are NOT HA like EC2 and they when in isolation are impacted by the AZ or region failure. They operate in a single subnet/AZ but can be distributed across multiple AZs*
+
+Microsoft AD:
+	Supports one-way and two-way external and forest trusts with on-premises active directory.
+	Comes in two modes- Standard ( supports 5000 enterprise users and 30,000 objects and enterprise (500,000 objects).
+	Supports schema extensions and Group Policies.
+	HA (2AZ+), monitoring, recovery, replication, snapshots and maintenance.
+	Can operate through a network link failure to any connected on-premises systems.
+	Supports RADIUS-based MFA along with AD connector.
+	Ideal for hybrid network, hybrid active directories Microsoft AD is the go to.
+	Only service that supports AD Native schema extensions.
+	Id you don't want any data inside AWS, then it has to be AD Connector.
+
+AD Connector:
+	Pair of directory endpoints and running in AWS injecting ENIs in 2 subnets in a VPC similar to other directory services.
+	Redirects requests to existing directory servers which means no directory data is stored in AWS.
+	AD Connector uses exsisting on-premises AD with directory compatible AWS Services.
+	Two sizes - small and large, no user or object limits but controls the compute allocated and hence throughput control.
+	AD Connector is configured in 2 subnets within a VPC at different AZs.
+	Need account information to authenticate to access on premise directory servers ( one or more).
+	A working network connection via DAX or VPN.
+	*Proof of concepts need of on-premises identities but don't want to configure a full AWS based directory* 
