@@ -1,0 +1,48 @@
+SCPs:
+	SCPs are initially disabled. You will need to enable them in Organization ----> Policies
+	Create your own SCPs and you can attach or detach policies likewise.
+	SCPs do not ALLOW anything, they only limit the amount of permissions an entity can have in an Organization.
+
+RAM:
+	AZs are not the same physical locations as perceived, they are rotated. us-east-1a for an account might not be the same as us-east-1a for another account. Problem in catering for availability in cross account for different listings.
+	AWS use AZ IDs to rectify the problem, consistently naming the AZs across multiple accounts e.g. use1-az1 as in us-east-1 az1.
+	Owner account share the resource, retaining ownership and if within organization and sharing is enabled then the resource is shared automatically else participant/recepient needs to accept the invite.
+	The RAM share the resources with a participant. Some resources can be shared with all aws accounts and some can only be shared within an Organization.
+	An example of RAM is the Shared Services VPC infrastructure where the vpc is shared across multiple accounts and the member acccounts can access the resources but not modify or delete them. They can also provision resources into the vpc and keep the ownership.
+	to share a resource RAM ----> Settings (check the automatic sharing within org) , ----> Resource shares ----> create resource share -----> name of the resource share ----> choose resource to share -----> choose principals
+	The member account can see the resources shared with them and the sharing account but it cannot see or have visibility of other member accounts the resources are shared with.
+	The resources shared with a member acct are not tagged in that acct even though the owner acct has tagged them.
+
+Service Qoutas:
+	Some service qoutas can be increased based on the need, others can't.
+	Number of IAM users in an account is fixed to be Five Thousand 5000 only and can't be increased.
+	To demand an increase in the service qoutas brings more process and time needed to cater for the changes( a drawback).
+	Default service qoutas and Applied Service Qoutas.
+	You can create CloudWatch Alarm for the service qoutas.
+
+SAML 2.0 Identity federation:
+	Must have following things to work with:
+		a. Enterprise identity Provider (not google identity provider)
+		b. SAML 2.0 Compatiblity
+		c. Existing identity Management
+		d. Single Source of Identity Truth or have more than 5000 users
+	If you see Google, Twitter, facebook etc. identity and not SAML compatible then SAML 2.0 is no go.
+	SAML uses IAM Roles and AWS Temporary Credentials.
+	For granting accesss to the API in AWS, the trust is created between Identity Provider and IAM and the role asssumption is initiated by the enterprise application.
+	For granting access to the console in AWS, the trust is created between Identity Provider and SAML/SSO Endpoint and the role assumption is initiated by the enterprise user.
+	Difference being that the SAML Endpoint creates a console URL for user instead of sending the credentials back to sign in which will have the credentials so that user can interact with services.
+	SAML 2.0 Identity federation is largely used especially with a Window based identity provider.
+
+AWS SSO/Identity Centre:
+	SSO allows you to centrally manage SSO access and user permissions for all AWS accounts in an Organization.
+	Also provides SSO for external applications such as Dropbox, Salesforce,slack, Office365.
+	Instead of manually configuring Identity federations separately, SSO allows Identity store to manage itself.
+		a. Built-in Identity Store
+		b. AWS Managed Microsoft AD
+		c. On-premises Microsoft AD (Two way trust or AD Connector)
+		d. External Identity Provider - SAML 2.0
+	Prefer SSO over SAML almost all the time.
+	if the question asks about the Workplace Identity then its likely going to be SSO and if the questions asks about the Customer's Identity(web applications using twt,google,fb or any other web identity) then it is going to be AWS Cognito.
+	LIVE_AWS_ROLE_TO_ASSUME 
+	LIVE_S3_BUCKET
+	LIVE_AWS_CLOUDFRONT_DISTRIBUTION_ID 
