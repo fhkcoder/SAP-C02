@@ -1,3 +1,16 @@
+AWS Cognito:
+	Authentication, Authorization and user management of web/mobile apps.
+	Two main parts:
+		User Pools ----> Allows to sign in and get JWT ( JSON Web Token)
+				 They can't be used to access AWS Services. Think of them as a Database which manages the user data and sign ins.
+		Identity Pools ----> Used to exchange a type of external idenity for Temporary AWS Credentials.
+				     Unauthenticated Identities for Guest User is one example of Identity Pools.
+	Federated Identities for external Identities that are swapped can be FB, Twitter,Google, SAML 2.0, User Pools.
+	API Gateway is capable of accepting the JWTs from user pools directly.
+	AWS Cognito is configured with roles for authenticated and unauthenticated identities.
+	Permissions of the applications' access to services is based on the roles permissions.
+	The swapping of any external id provider token for AWS credentials is known as web identity federation.
+	Configuring user pools with identity pools lessen the admin overhead instead of individually accepting tokens from different Identity providers. The Identity providers are configured within user pools to generate only one specific type of token.
 Amazon Workspaces:
 	AWS managed desktop as a servce (DAAS).
 	Monthly or hourly pricing.
