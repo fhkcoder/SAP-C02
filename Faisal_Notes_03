@@ -45,3 +45,36 @@ AD Connector:
 	remote desktop login ----> Jumpbox ----> start ----> remote desktop connection ----> Client server -----> //filerserver on windows explorer ----> fileshare ----> create a file 
 	
 	start ----> windows Administrative Tools ----> Active directory users and computers
+	
+Two-Way Forest Trust:
+	Authenticates users from AWS at On-premises and vice versa.
+	Allows to use resources at one domain by the other as long as relevant permissions are set.
+	Two things for seting up two way trust:
+		Kerberos pre-authentication settings are correct at both sides domains
+		Create a conditional DNS forwarder at each side so that both sides can reolve the infrastructure at the other.
+	Look for do not require kerberos pre authentication check box and make sure it is UNchecked inside the on-premises AD domain.
+	Give aws domain in the conditional forwarder box in the on-premises AD.
+	Add the two IP(DNS) Addresses in the AWS AD for DNS server.
+	Configure the SG of the AD to allow outbound traffic to the IP CIDR range of the on-premises domains cintrollers (specifically in PROD env but) 0.0.0.0/0.
+	
+	Repeat the kerberos pre-authentication checkbox step for AWS as well.
+	
+	Create new trust in the On-premises client server. 
+	
+	External trust ----> Domain based on differnt forsets , legacy system, non-transitive, one-way or two-way
+	Forest trust ----> requires DNS resolution, established relationship between entire forests, transitive (can access all domains in a forest), one-way or two-way
+	
+	Go to the AWS directory and establish the Two-way trust at the console.
+	Give IP addresses (private addresses) of the DC1 and DC2 in the On-premises environment.
+	
+FSx for fileshare:
+	Implement the distribution file system between on-prem fileserver and FSx using Two-way forest trust.
+	It can be accessed from the on-premises client window machine as the admin user of on-premise directory domain is configured. You can do manual migration copying from on-prem file server to FSx on the same desktop.
+
+DFS management:
+	provides two main functions:
+		Namespaces ----> allows to create a hierarchy that can be used to access the files in the DFS. Instead of copying file directly namespaces are used to point to the file. They can be changed to point to a different set of files as per the requirements. Abstraction away from the physical files.
+			Two types of namespaces:
+				Domain-based namespaces ----> stored on one or more servers in AD domain services. Can increase availability by increasing the number of servers.
+				Stand alone namespaces ----> single namespace server. Can increase availability by hosting it on a failover cluster.
+
