@@ -40,4 +40,8 @@ AD Connector:
 	AD Connector is configured in 2 subnets within a VPC at different AZs.
 	Need account information to authenticate to access on premise directory servers ( one or more).
 	A working network connection via DAX or VPN.
-	*Proof of concepts need of on-premises identities but don't want to configure a full AWS based directory* 
+	*Proof of concepts need of on-premises identities but don't want to configure a full AWS based directory*
+	
+	remote desktop login ----> Jumpbox ----> start ----> remote desktop connection ----> Client server -----> //filerserver on windows explorer ----> fileshare ----> create a file 
+	
+	start ----> windows Administrative Tools ----> Active directory users and computers
