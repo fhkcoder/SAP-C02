@@ -1,0 +1,139 @@
+Section 04: Networking and hybrid
+
+AWS Public/Private Services:
+	3 types of network zones
+	Public internet zone
+	AWS public zone
+	AWS private zone
+	
+DHCP:
+	Dynamic Host Configuration Protocol helps to auto configure network resources.
+	Hard code MAC Address with two parts. vendor and device part
+	L2 broadcast to get info from DHCP server
+	this returns L3 info such as IP address, Subnet mask, Default Gateway (DHCP is how a device gets these attributes, also true for DHCP within a VPC)
+	configures which DNS servers to use and the custom Domain name on resources within VPC
+	DHCP Options Sets:
+		 they are immutable ( can not be changed)
+		 can be associated with 0 or more VPCs ( you can create an options set and not assign it to any VPC)
+		 each VPC can have a maximum of 1 options set attached with it
+		 associating new option set is immediate but changes require a DHCP Renew which takes time (vary)
+		 You can not configure above attributes (IP etc) in an options set.
+		 You can configure the DNS Server to use in an options set. ( by default Route53)
+		 
+VPC Router:
+	Virtual router, highly available, scalable, routes traffic between subnets
+	resposible for traffic from external networks into the vpc (external can be other vpcs,on-prem networks, cloud platform, public internet) 
+	from the vpc into external networks
+	vpc router interface in every subnet, subnet+1 address ( if subnet is 	10.16.48.0/20 then interface uses 10.16.48.1, first ip address in a subnet afer network addess ( provided as a default GW via DHCP Option Set)
+	controlled using route tables
+	Each subnet is associated with only ONE RT ( main or Custom)
+	VPC router prioritized the most specific routes(/32) over the general routes (/0)
+	If a route overlaps with other such as /16 with /32 then the most specific will be counted i.e. /32
+	Destination is the ip address where the traffic needs to be sent and target is the environment where the traffic is to be sent. can be local (within vpc etc)
+	local routes cannnot be updated and they are always prioritized.
+	
+NACLs:
+	Stateless
+	impacts data crossing subnet boundary
+	Explicty Allow and Deny
+	Logical resources can not be associated only IPs/CIDR, ports, protocols
+	Each subnet can have only ONE NACL, either default or custom
+	NACL can be associated with many subnets
+	will need 2 rules on each NACL for 1 connection if data is to be transferred between two subnets.
+	
+SGs:
+	Stateful
+	Allowed request = Allowed response (IN or OUT)
+	no explicit deny
+	can't block specific bad actors
+	supports logical resources such as other SGs and ITSELF to be associated
+	SGs are attached to ENIs not instances
+	self reference in a subnet allows diiferent resources to communicate with each other
+	logical references helps in autoscaling
+	
+Local Zones:
+	Inherited from the parent region to minimize latency due to long distances between buisness on-premises and parent region.
+	Supports internet connection and private DAX connection.
+	The local zone resources are part of the parent region such as subnets are part of same VPC and hence work similary.
+	The local zone has a private connection with parent region.
+	Certain resources can be created within the local zones such as EC2 instances but other such as an EBS Snapshot stored in s3 available across multi AZ, local zone has to rely on parent region. 
+	1 more AZ without resiliency and near your location (buisness).
+	Not all products supports local zones. ----> https://aws.amazon.com/about-aws/global-infrastructure/localzones/features
+	use when you require "THE HIGHEST" performance.
+	
+Border Gateway Protocol:
+	BGP is a routing protocol used to control flow of data from one point through another and then arriviing at a destination.
+	As a system built on many self managed networks known as Autonomous System (AS)
+	Could be a large network or collection of routers controlled by a single entity
+	AS are blackboxes abstracted away from  everything other than network routing in and out of it
+	ASN (Autonomous System Number) are unique and assigned (0-65535) private ---> 64512-65534
+	ASN is the way with which BGP identifies different entities within the network
+	BGP operates over tcp/179 and it is reliable
+	doesn't support automation - manual peering between two AS
+	BGP is a path-vector means it exchanges best path to a destination between peers... the path is called ASPATH
+	iBGP ----> internal BGP-routing ( routing within an AS)
+	eBGP ----> external BGP-routing ( routing between AS's)
+	
+	By default BGP chooses SHORTEST ASPATH without catering for performance etc but you can use AS path prepending to artificially manipulate the routes making paths look longer than they are to make BGP choose the longer path which might have better performance.
+	
+Global Accelerator;
+	uses 2 x Anycast IPs ----> attached to multiple resources and internet co-router routes to nearest resource
+	Anycast IPs are attach to global accelerator edge locations at different places
+	The data is then transferred to Global Accelerator thorugh AWS's own network which has minmal hops and hence tends to performance demands.
+	
+	Cloudfront caches the content near the customer through edge locations whereas Global accelerator provides the nertwork closest to users in the edge locations using Anycast IPs.
+	Global accelerator is a network based product which means it only works on tcp/udp applications including web apps whereas Cloudfront caches only Http/Https
+	
+IP Sec:
+	group of protocols
+	sets up secure tunnels across insecure networks ( public )
+	between two peers ( local and remote)
+	provides authentication
+	data is encrypted all along ( Cipher text)
+	interesting traffic is traffic based on some set of rules
+	Symmetric/asmetric encryption ----> fast/slow,same key for encrypt/decrypt and hence problem exchanging keys/ different keys for encryp/decrypt and hence easier
+	Two phases:
+		IKE Internet key Exchange phase 1 ( slow and heavy)
+		IKE phase 2 ( fast and agile)
+	Policy based VPNs rules match a pair of Security Associations  ----> difficult to configure but provide flexibility
+	Route based VPNs target matching prefix
+	
+	Each site (peer) creates a DH (diffie-hellman) private key and a corresponding public key
+	Then they swap the alternative public keys
+	using their own private key and ther peer public key they create the DH key
+	using the DH key they create a symmetrical key in phase1 of the IKE
+	IKE Security Association - phase1 Tunnel
+	
+	Phase 2 has a DH key, symmetric key at both sides and the established tunnel
+	After exchanging agreements and agreeing on best shared encryption and integrity methods, another symmetrical IPSEC key
+	this phase has a pair of ipsec security association tunnels, left to right and right to left 
+	
+AWS Site-to-Site VPN:
+	Logical connection between VPC and on-premises using the ipsec connection
+	fully HA 
+	quick to provision less than an hour
+	VGW is a logical gateway which can be associated with a single VPC and can be a target to one or more rts.
+	CGW is a logical piece of configuration within AWS and or ( the actual thing which it represents) a physical on-premise router which the VPN can connect to.
+	Connection between VGW and CGW
+	
+	VGW is a highly available object just like the IGW but behind the scenes it has physical endpoints at different AZs each with public ipv4 addresses.
+	2 tunnels ---> 1 from vpn with VGW endpoints and other from the endpoints to the router on premise.
+	Static VPN connection has one point of failure ( the router or CGW at the on premises )
+	this design is hence partial highly available and prone to failure upon CGW failure.
+	to modify, create one more VPN connection attach it to the same VGW and hence two more physical endpoints which will create VPN tunnels with a new CGW created at the on-premise to make it HA.
+	
+	Difference between Static and Dynamic VPN is that later uses the BGP.
+	If CGW doesn't support BGP, you can't have dynamic VPN.
+	Static VPN uses static routes network configured statically but it doesn't support load balancing, multi connection failover
+	
+	BGP allows to exchange information about the routes between VGW and CGW and hence provides HA and traffic distribution
+	
+	Dynamic VPN allows to add routes statically to the rts but if enabled, route propagation will add Routes automatically to the RTs if any VPN Connection is found active
+	
+VPN Considerations:
+	Speed Limitations ---> VPNs max sppeed 1.25Gbps ( same with VGW) 
+	latency issues ----> hops over the public intrnet can create inconsistency
+	cost attached ----> AWS hourly cost, GB out cost, data cap ( on premise )
+	speed of setup ----> hours or less all software configurations
+	can be used as backup to a physical connection such as direct connect DX
+	can be used with DX for quick provisioning
