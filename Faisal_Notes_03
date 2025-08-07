@@ -46,3 +46,92 @@ Remote DS Env:
 	remote desktop login ----> Jumpbox ----> start ----> remote desktop connection ----> Client server -----> //filerserver on windows explorer ----> fileshare ----> create a file 
 	
 	start ----> windows Administrative Tools ----> Active directory users and computers
+
+Two-Way Forest Trust:
+	Authenticates users from AWS at On-premises and vice versa.
+	Allows to use resources at one domain by the other as long as relevant permissions are set.
+	Two things for seting up two way trust:
+		Kerberos pre-authentication settings are correct at both sides domains
+		Create a conditional DNS forwarder at each side so that both sides can reolve the infrastructure at the other.
+	Look for do not require kerberos pre authentication check box and make sure it is UNchecked inside the on-premises AD domain.
+	Give aws domain in the conditional forwarder box in the on-premises AD.
+	Add the two IP(DNS) Addresses in the AWS AD for DNS server.
+	Configure the SG of the AD to allow outbound traffic to the IP CIDR range of the on-premises domains cintrollers (specifically in PROD env but) 0.0.0.0/0.
+	
+	Repeat the kerberos pre-authentication checkbox step for AWS as well.
+	
+	Create new trust in the On-premises client server. 
+	
+	External trust ----> Domain based on differnt forsets , legacy system, non-transitive, one-way or two-way
+	Forest trust ----> requires DNS resolution, established relationship between entire forests, transitive (can access all domains in a forest), one-way or two-way
+	
+	Go to the AWS directory and establish the Two-way trust at the console.
+	Give IP addresses (private addresses) of the DC1 and DC2 in the On-premises environment.
+	
+FSx for fileshare:
+	Implement the distribution file system between on-prem fileserver and FSx using Two-way forest trust.
+	It can be accessed from the on-premises client window machine as the admin user of on-premise directory domain is configured. You can do manual migration copying from on-prem file server to FSx on the same desktop.
+
+DFS management:
+	provides two main functions:
+		Namespaces ----> allows to create a hierarchy that can be used to access the files in the DFS. Instead of copying file directly namespaces are used to point to the file. They can be changed to point to a different set of files as per the requirements. Abstraction away from the physical files.
+			Two types of namespaces:
+				Domain-based namespaces ----> stored on one or more servers in AD domain services. Can increase availability by increasing the number of servers.
+				Stand alone namespaces ----> single namespace server. Can increase availability by hosting it on a failover cluster.
+
+Workspaces with AD:
+	Workspaces are one service wh9ch require an AWS managed directory service.
+	Both the AWS and On-prem ADs were using the same default aws instance security group that is why we were able to login into both directories simultaneaosly, but when you configure workspaces, they create or use a different security group so it has to be granted necessary permissions in order to access the ADs.
+
+AWS Control Tower:
+	Uses AWS Organizations as a building block and is an evolution of Organizations. Adds features to it to automate, setup and manage multi account environments.
+	It uses Organizations, IAM Identity Centre, Cloudformation,config and more.
+	It has different parts:
+		Landing Zone:
+			This is multi-account environment with which people will interact.
+			just like AWS Organizations with super power. SSO(IAM Identity Centre)/ID Federation, Centralized logging and Auditioning (Cloud Watch, Cloud Trail, AWS Config, SNS)
+			Features:
+				well architected multi account environment. concept of Home Region
+				security, sandbox and other OUs(accounts and nested OUs) are created as part of landing zone.
+				utilizes IAM identity for SSO and ID Federations to grant access to multiple accounts.
+				Allows end user to provision accounts using service catalog.
+		Guard Rails:
+			Detect/mandate rules/standards across all accounts within the landing zone.
+			Detects drifts occuring from Govt. standards or prevents them from happening in the first place.
+			There are three types of Guard rail rules:
+				Mandatory
+				Strongly Recommended
+				Elective
+			There are two types of guard rails:
+				Preventive ----> Stop you doing things withi landing zone.
+						 can be enforced or not enabled.
+						 will stop things occuring
+				Detective ----> compliance check against Config rules
+						they are clear, in violation or not enabled
+						will only identify those.
+		
+		Account Factory:			
+			Automates and standardize the provisioning of aws accounts.
+			Give account admin users or end users proper permissions
+			guardrails are added automatically
+			account and network standard configurations
+			can be fully integrated with a SLDC
+			
+		Dashboard:
+			Single page oversight of the entire environment (AWS Organziation).
+	AWS Control town resides in the management account of AWS Organizations, along with SSO.
+	It creates two types of OUs when first setup:
+		Foundational OU which by default is called as Security.
+			Inside this, AWS Control Tower creates 2 accounts.
+			Log Archive account:
+				For users that needs access to all logging info of all the accounts within the landig zone. e.g. Cloudtrail and Config logs.
+				Needs special permissions to access this acount. It is secured with Read only archive account access for logging.
+			Audit account:
+				For users that needs access to Audit info made available by control tower.
+				location for third party tool to do auditing of the environment. SNS and CloudWatch for notifications and landing zone metrics. 
+		Custom OU which by default is called as Sandbox.
+			within this, Account factory will create and modify accounts in an automated way.
+			Baseline, consistent configurations in a cookie cutter way within the landing zone.
+			Under the cover, Control Tower utilizes cloudformation to achieve this automation.
+			
+	Control tower uses Configa and SCP to implement guardrails.
