@@ -1,0 +1,65 @@
+Transit Gateway:
+	Network transit hub used to connect VPCs to each other and on-premises networks using site-to-site vpns and DX Gateways.
+	Attachements to other network types.
+	Transit gateway use S2S VPN attachment and hence relieving the VPC peering overhead from AWS to the on-premise ( CGW ).
+	You need to specify a subnet inside a VPC to connect the transit gateway with to work as an inter VPC router.
+	you can also peer transit gateway to other transit gateways in same or another account, in another region to establish communication.
+	you can share transit gateways between different AWS accounts using AWS RAM.
+	
+	One DX gateway can be connected to three transit gateways via transit vifs. ( virtual interfaces ).
+	The default rout table is by itself propagated with the information transit gateway has about its transitive connections ( attachemnts ) which it learns by itself.
+	One Transit gateway can peer with upto 50 other transit gateways. ( same or differernt region )
+	
+	Peering attachments ( transit gateway peering ) don't share the routes from the route tables, need to use static route to allow this function
+	Use unique ASNs when configuring transit gateways
+	Public DNS resolution to private addressing is also not supported in peering attchments ( cross region )
+	Data is encrytped over global AWS network
+	
+	Attachments can be associated to only one route table
+	RT's can be associated with MANY attachments
+	Attachments can propagate with many route tables even those they are not associated with
+	
+	Association: route table association is used when data is exiting an attachment, the transit gateway decides based on association where to send the traffic 
+	Propagation: is the configuration which controls which route tables will be populated with routes known by the attachments
+	
+	We create two rts, one will be propagated with all attachments routes and all the free attachments can be associated with it.
+	Second rt will be propagated with the desBGP (Border Gateway Protocotination routes of the specific target attachments and then attached to those attachments which we want to bound to these specific routes/attachments only.
+	This method is used to keep attachments away from interacting or knowing about each other.
+	
+Advanced VPC Routing:
+	Subnets are associated with only 1 rt.
+	RTs can also be associated with IGW and VGW to control traffic flow from the internet and on-premise networks entering VPC.
+	destination can be default destination, network in CIDR notation, a specific IP Address using a CIDR, used by VPC router and IGW/VGW when evaluating traffic.
+	target defines where traffic should be sent to if it matches the destination.
+	RT has a limit of 50 static routes and 100 dynamic routes ( propagated routes ) per route table.
+	
+	Rules:
+		longest prefix route has highest priority , e.g. /32 over /24 or /16
+		static routes over propagated routes
+		if above criteria matches same:
+		routes learned via DX if same
+		then routes learned via VPN Static if same
+		then routes learned via VPN BGP if same
+		then routes with the shortest AS_PATH 
+		
+	If matching VPC CIDRs are present then attach separately both targets to different subnets so that each subnet can route to different targets although the destinations are same.
+	Overlapping CIDRs can be dealt also by giving more specific or longer CIDR along with the generic one if you want to move traffic to a specific instance.
+	e.g. if both CIDRs are 10.20.0.0/16 at target 1 and 2, then you can choose one CIDR and target 1 for traffic and if you want to utilize the other target instace then give it a specific longer CIDR such as 10.20.0.20/32 at target 2, now traffic will flow generically to target one but specifically to target 2 IP CIDR given
+	Ingress routing can be implemented by attaching IGW and VGW RTs so that VPC inbound traffic can be directed to the security appliance irrespective of what the original ip address was.
+	
+Accelerated Site-to-Site VPN:
+	performance enhancement to the normal s2s VPN.
+	uses the AWS Global Network same as Global Accelerator.
+	DX can be a replacement via public vif but it is costly.
+	transit gateway increase the number of VPCs attached to only one s2s connection but the vpn tunnel still uses public internet to transfer data hence latency and inconsistency issues.
+	
+	The CGW is connected to Global edge locations just like in Global Accelerator with 2 Anycast IPs, this result in lower latency and less jitter, higher through put
+	jitter is the variance in latency
+	
+	Acceleration can only be enabled with a Transit gateway VPN attachment, VGW don't support accelerated s2s vpn connection.
+	fixed accelerator Fee and a data transfer fee.
+	this approach combines 3 differernt services for optimization ----> sute-to-site vpn + transit gateway + Global accelerator
+	transit gateway over VGW for optimal performance and high speed
+	
+	strongSwan ----> an IPsec-based VPN solution used with site-to-site vpn, primarily for linux
+	FRR ( Free Range routing )----> routing protocol suite for dynamic routing in IP networks, BGP supported
