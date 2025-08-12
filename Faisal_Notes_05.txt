@@ -63,3 +63,18 @@ Accelerated Site-to-Site VPN:
 	
 	strongSwan ----> an IPsec-based VPN solution used with site-to-site vpn, primarily for linux
 	FRR ( Free Range routing )----> routing protocol suite for dynamic routing in IP networks, BGP supported
+
+Client VPN:
+	AWS managed implementation of openvpn.
+	connect to one vpc and target networks are 1+
+	charged based on subnets you have associated and other is hourly fee per client vpn connection
+	clientvpn endpoint creates an interface inside the subnet
+	you can pick one subnet per availability zone for HA
+	clientvpn uses certificates, identity federation or aws managed directories for authentication
+	connection logs in CW logs, metrics in CW
+	route table is atatched to the client vpn endpoint and is pushed to the client machine
+	by adding manually routes can grant access to the target networks such as other subnets
+	can create vpc peering and then add route to it
+	normally the communication between client local machines and or public internet access is through the client vpn endpoints
+	client vpn : split tunnel is used to add routes to the client system without interferring with already added routes which allows the access for local communication as well as public internet
+	split tunnel is not enabled by default
