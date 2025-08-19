@@ -78,3 +78,19 @@ Client VPN:
 	normally the communication between client local machines and or public internet access is through the client vpn endpoints
 	client vpn : split tunnel is used to add routes to the client system without interferring with already added routes which allows the access for local communication as well as public internet
 	split tunnel is not enabled by default
+
+DX Connection:
+	A physical connection.
+	buisness premises ----> DX Location ----> AWS region
+	port number is allocated at DX location
+	port has two charges: one is hourly charge and other is data transfer cahrges ( outbound only )
+	provisiooning time is required for AWS to setup the port and also conenction through physical cables, so if the cable is cut it is cut no reseliency
+	low and consistence latency, high hybrid connectio speeds within AWS ( 1, 10 or 100 Gbps )
+	DX has higher speeds over IPSec tunnels as those needs encryption at different stages and hence an overhead for the transfer of data.
+	the router at the CGW ( on-premises ) can be the same router used to connect to the internet or a new DX dedicated router.
+	
+	At DX location, AWS rent a space in a building and place one or more AWS DX routers known as DX endpoints. the place is called AWS DX Cage.
+	Often it has a customer rented place as well known as customer ( or partner ) DX router. the place is called customer or comms (communication) partner cage. 
+	cage could be yours (customer) or partner (comms). but it needs to have a corresponding port with AWS DX router port. this is know as cross connect.
+	this comms provider can extend the DX port into your on-premises if you don't have space at DX location
+	transit VIFs, public VIFs, private VIFs ----> transit gateway through DX, AWS public zone through DX, AWS private zone through DX.
