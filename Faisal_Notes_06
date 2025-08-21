@@ -33,3 +33,85 @@ DX - Connection process:
 	letter of authorization customer fascility access (LOA-CFA) ---> authorization given to the data centre staff to connect equipment of one customer to another in the shared building for cages.
 	LOA-CFA needed to be downloaded by the customer once DX port is provisioned in the DX location
 	cross connect request is then intiated from AWS cage to the customer cage.
+
+DX - BGP Sessions + VLAN:
+	VLANs are used to isolate traffic in a single shared physical network such as a switch shared by different devices.
+	VLANs along with BGP Sessions are used by VIFs to communicate between DX-Locations and AWS serices.
+	VLANs ( Layer 3 ) are established over the Cross Connect ( Layer 2 ) between AWS Router and Customer Router in the DX Location.
+	VIFs then connect that AWS Router to the AWS resources featuring VLAN for isolation, BGP Sessions for authentication and specific VIFs for specific type of resources such as Private, Public or tranist.
+	VIFs can obly be used with DX connection, but they can be associated with VGW, TGW or DXGW separately ( using DX Connection).
+	
+Private VIFs:
+	they are used to access resources in 1 VPC ( transit and dx gateways are workarounds ) using private IPs.
+	Attach to VGW 1 VPC only
+	Private VIF should be in the same region as the DX location ( VGW and VPC )
+	1 Prv VIFs = 1 VGW = 1 VPC ( without any workaround )
+	No encryption
+	
+	Creating Pvt VIF:
+	pick the connection for vif to run on
+	choose VGW or DX gateway
+	VIF owner - either the same account or another acount
+	VLAN - 802.1Q 
+	BGP ASN on-premise ( public or pvt )
+	Peer IPs or auto generated
+	AWS advertise the VPC CIDR and the BGP Peer IPs (/30s)
+	can advertise dafualt or specific corp prefixes
+	maximum of 100 prefixes can be advertised by pvt vif, if exceeds then it will go into the idle state and won't work. it is a HARD LIMIT and won't change.
+	
+Public VIFs:
+	Access public zone services such as public/elastic IPs, public services ( s3,sns etc)
+	can't access private services (VPC)
+	can access ALL aws regions over a public vif
+	AWS advertises all public IPs and data tranmits over the AWS global network not the public internet
+	you advertise any public IPs youmown over BGP
+	supports bi-directional BGP communities
+	Not transitive meaning your prefixes don't leave AWS network to access other customers ip addresses unless they are using EIPs for AWS resources which can be accessed
+	
+	Creating Pub VIF:
+	pick the connection for vif to run on
+	interface owner - this account or another
+	VLAN - 802.1Q
+	BGP ASN can be public or PRIVATE
+	MD5 Authentication
+	Optional Peering
+	Which prefixes you want to advertise
+	
+Public VIF + VPN:
+	Encrypted and authenticated tunnel over public internet / DX
+	Over DX low latency and consistent
+	using a public vif + VGW/TGW public endpoints 
+	vpn is transit agnostic can be used to connect over the public internet or public vifs, vpn configuraion is the same
+	vpn has wider vendor support
+	vpn has more Cryptographic overhead vs MACsec, so this limits their speed
+	vpn can be enabled instatntly whereas DX takes time, Can be used while DX is getting provisioned then leaving it for encryption and/or use it as a Backup or both
+	
+DX Gateway:
+	Global network device - accessible in all regions
+	At the on-premises, private VIF is created and associated with a DX gateway instead of VGW and this will give access to all the regions.
+	Associate the VGWs attached to VPCs globally to this DX Gateway 
+	this only allows all the VPCs to communicate with on-premise but not with each other.
+	You can have 10 VGWs attached to one single DX gateway per Private VIF ---> 10 VPCs
+	1 DX Connect can have 50 Private VIF == 500 VGWs ----> 500 VPCs
+	Cross Account DX gateway
+	
+DX, transit VIFs and TGW:
+	1 DX connect can have only 1 Transit VIF.
+	A Transit VIF can be used to connect 6 TGW via DX gateway through the DX.
+	A DX Gateway can be associated with a VGWs and Private VIFs or TGWs and Transit VIF NOT both at the same time.
+	Without tranist peering betwen transit gateways, they can not route traffic to each other as DXGW doesn't route attachment between them.
+	A TGW can be connected to upto 20 DXGW.
+	A TGW can support upto 5000 attachments and 50 peering attachments ( which can support 5000 attachments each)
+	6 * 50 * 5000 = 1.5 M VPCs
+	
+DX Resilience and HA:
+	Multiple ports at the AWS DX Router and Customer DX Router in the DX Locations, multiple Cross Connects, Multiple Extensions ( cables should be different to avoid any point of failure), multiple cutomer premises routers ( CGWs )
+	Multiple DX Locations with multiple DX routers (AWS and Customer) and customer on-premise locations
+	
+DX - Link Aggregation Groups LAG:
+	Multiple physical connections are grouped toact as one. Speeds are either 2 100 Gbps ports ( MAx 200 ) or 4 portsless than 100 ( Prolly max 50)
+	More of a speed feature or Admin overhead feature rather than resilience feature. from exam perspective
+	Active/Active architecture so all members of the LAG are used at the same time
+	All connections need to be of the same speed and should terminate at the same DX location
+	creating a LAG at different DX locations isn't possible
+	MinimumLinks is an attribute where you dfine minimum connections to be active in terms of the LAG to be functional, if active connections are lesser than this it will make the LAG in the failed state
