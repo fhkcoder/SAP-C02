@@ -1,0 +1,35 @@
+DX - Physical connection Architecture
+	DX connection is a physical port with 1, 10 or 100 Gbps
+	router should support single-mode fibre , copper cables are not supported for DX Connection
+	1000 Base-lx 1310nm transceiver  - 1 Gbps
+	10G base-lr 1310nm transceiver - 10 Gbps
+	100G base-lr4 transceiver - 100 Gbps
+	auto negotiaition disabled ----> port speed and fulll-duplex manually set
+	router must support BGP and BGP MD5 Authentication
+	optional MACsec and Bidirectional forwarding detection BFD
+	
+DX - Security MACsec:
+	MACsec ----> Media Access Control
+	MACsec feature helps improve the problem of built in encryption in DX.
+	It allows FRAMES to be encrypted ----> frames are unitive data which occurs at layer 2 of OSI
+	It is a standard that extends ethernet called IEEE 802.1AE
+	hop by hop layer 2 adjacency between two switches /routers.
+	Confidentiality ---> encrypting frames ethertype and payload, making it opaque on the outside
+	data integrity ----> adds fields to check data modificatiojn in transit and letting both the parties know about the modification
+	data origin autheticity ---> both parties can see data is sent by trusted peer in the macsec relationship
+	replay protection ---> attack in which encrypted frames are captured and resent, too old and duplicate packet numbers are dropped
+	not end to end ----> does not replace IPSEC over DX
+	high speeds ----> terabit networks
+	
+	Components:
+	Secure Channel - unidirectional ( two are used to send and receive traffic )
+	Secure channel identifier (SCI) - uniquely identifies channel
+	Secure Associations - sessions on SC, generally 1 at a time but exception when SA is to be replaced so first a new is amde and then the old one is deleted
+	MACsec encapsulation - modifying frames by inserting 16 bytes MACsec tag also called sec tag and 16  bytes Integrity check Value ( ICV )
+	MACsec key Agreement -  discovery, authentication, and key generation for the encryption keys
+	Cipher suite - how data is encrypted, packets per key, key rotation
+	
+DX - Connection process:
+	letter of authorization customer fascility access (LOA-CFA) ---> authorization given to the data centre staff to connect equipment of one customer to another in the shared building for cages.
+	LOA-CFA needed to be downloaded by the customer once DX port is provisioned in the DX location
+	cross connect request is then intiated from AWS cage to the customer cage.
