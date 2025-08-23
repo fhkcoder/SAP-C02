@@ -1,0 +1,36 @@
+Route 53:
+DNS Record Types:
+
+Nameservers:
+	They are the records which allow delegation to occur in DNS.
+	they are used to maintain a zone by an organization.
+	
+A and AAAA:
+	these types of records map host names to ip addresses
+	A    ----> ipv4
+	AAAA ----> ipv6
+	
+CNAME:
+	maps host to host, canonical name
+	reduce  overhead by mapping multiple host names to one single host, creates shortcut
+	CNAME can not point to any other ip address, only other cnames 
+	
+MXRecords:
+	It has 2 parts priority and a value.
+	if there is only host then it means that host is inside the same zone 
+	if there is a dot on the right of the host, it means that it is a FQDN and it might be part of the same zone or another zone altogether.
+	used for emails e.g. hi@google.com, first it focus on the domain and then it initiates MX queries
+	it gets the record seeing the priority of MX records and use SMTP to connect to the mail server as it gets back the result of that query
+	Summary MX record is how a server finds the mail server (SMTP) for a domain.
+	
+TXTrecords:
+	Allows to add arbitrary text to a doamin
+	used to prove domain ownership
+	add sometext data in the record and use it to prove identity to manage the domains
+	can be used to detect spam
+	
+TTL:
+	TTL ( Time To Live ) can be set on a DNS record.
+	cached data non-authoritative is enabled and normally is equivalent to authoritative ( queries against nameservers )
+	low TTL values means more queries against nameserver and hence more time to establish  link (authoritative)
+	high TTL values means less control over data transmission when authoritative link changes bcz of old cache
