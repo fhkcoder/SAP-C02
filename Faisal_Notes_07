@@ -34,3 +34,22 @@ TTL:
 	cached data non-authoritative is enabled and normally is equivalent to authoritative ( queries against nameservers )
 	low TTL values means more queries against nameserver and hence more time to establish  link (authoritative)
 	high TTL values means less control over data transmission when authoritative link changes bcz of old cache
+
+DNS Public Hosted Zones:
+	Hosted Zone is a DNS DB for a domain e.g. a4l.com etc
+	Hosted Zones are Databases which are referenced via delegations using nameservers records.
+	Hosted Zone referenced this way is Authoritative for a domain.
+	
+	Public HZ is a DNS DB ( zone files ) hosted on R53 ( Public Name server )
+	This means accessbile from Public internet and VPCs usig R53 resolver
+	hosted on 4 nameservers specific for the zone
+	ns records are used to point at these NS
+	resource records created within the hosted zone which contains actual data ( MX, TXT, www )
+	VPC uses VPC +2 Address to access DNS reolver and query dns
+	public ---> ISP resolver ----> root servers ----> .com ( main domain ) ns records ----> specific doamin ns records ( a4l.com )
+	
+DNS Private hosted Zones:
+	 Just like public hosted zone but it is not public
+	 Associated with VPC in AWS and only accessible from within that VPC
+	 use differentr account support via CLI/API
+	 Spit view ( overlapping public / private ) for public and internal use with same zone name
