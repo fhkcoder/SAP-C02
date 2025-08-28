@@ -53,3 +53,19 @@ DNS Private hosted Zones:
 	 Associated with VPC in AWS and only accessible from within that VPC
 	 use differentr account support via CLI/API
 	 Spit view ( overlapping public / private ) for public and internal use with same zone name
+
+CNAME vs ALIAS:
+	CNAME is invalid for naked/apex domain.
+	With CNAME , mappig apex domain to DNS Name (ELBs) would be invalid.
+	ALIAS records are used to map a NAME to an AWS Resource
+	It can be used to map both naked/apex and normal records.
+	for non-naked/apex domain you could use CNAME or ALIAS records
+	No cahrges for ALIAS record so default is to pick ALIAS record for AWS Resources whether naked or non naked domain
+	ALIAS records copuld be of A records or CNAME depending on what it is pointing at.
+	ALIAS can only be used if R53 is hosting your domain.
+	
+ROUTING POLICIES:
+Simple Routing:
+	Simple routing supports 1 record per name (www ---> A)
+	A record can have multiple values (A) which it delivers randomly to client all of them and then client chooses one to access the server.
+	It does not support health check ( if the servers A address is refrencing to is operational or not ).
