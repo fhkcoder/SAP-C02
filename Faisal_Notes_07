@@ -69,3 +69,42 @@ Simple Routing:
 	Simple routing supports 1 record per name (www ---> A)
 	A record can have multiple values (A) which it delivers randomly to client all of them and then client chooses one to access the server.
 	It does not support health check ( if the servers A address is refrencing to is operational or not ).
+
+Health Checks:
+	Are separate from but used by the Records in R53.
+	Carried out by a fleet of health checkers distributed globally.
+	Checks are made every 30s by default (10s will have additional costs)
+	TCP=10s endpoint success
+	HTTP=4s tcp connection to endpoint
+	HTTP=2s response from the endpoint via 200 or 300 Codes
+	String Matching along HTTP/HTTPS = connection 4s, response 2s alongnwith response body wich must contain specific string that you have specified.
+	The string must appear entirely within the first 5120 bytes of the response body or the endpoint fails the health check
+	Types:
+		Endpoint checks ----> endpoint that you have specified
+		CloudWatch Alarm checks ----> configured separately based on CW Alarms, in-OS or in-app tests if you use the CW Agent
+		Calculated checks ----> check of checks
+
+	Temporary maintenance can be done via disable health check option without having to delete the health check completly
+	Create a CW Alarm and send SNS Notification based on that if we want to be notified for the heath check failure
+	If 18% of health checkers report is healthy than the health check is healthy otherwise unhealthy
+
+Failover Routing:
+	Two records of the same domain names are kept at the DNS hosted zone Primary and Secondary
+	Health checks are made on the Primary, if healthy traffic is routed to it else the secondary value of the same name is returned but no health check on secondary
+	Use case is the configuration of active passive failover
+
+	Naming of the S3 bucket as secondary value is important, it should match with the domain name such as if domain name is: a4l1337.org then bucket: www.a4l1337.org
+
+Multi Value Routing:
+	Mixture of simple and failover routing
+	Can create multiple records (e.g A records) with the same name
+	8 healthy records are returned if health checks are configured with each record. If more than 8 are selected randomly
+	If any record fails health check then it is not returned to client and removed.
+	Not a replacement for Load Balancer
+
+Weighted Routing:
+	Simple form of Load Balancer or testing new software version
+	Multiple records with the same name
+	Assign record weights, distribute traffic according to the weight of a single record versus the total weight
+	Setting record weight to 0 means you don't want this reord to be returned, but if you set all records to 0 means you want all records to be returned
+	Health checks can repeat the process of getting the right weighted record if its healthy only, they don't remove the health weights from the calculations and don't adjust the total weight
