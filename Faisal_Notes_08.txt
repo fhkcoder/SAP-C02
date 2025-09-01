@@ -1,0 +1,51 @@
+
+R53 DNSSEC:
+    Process start with creation of Asymmetric KMS key pairs. Can be enabled as DNSSEC signing for the hosted zones or configured separately.
+    you can call them as KSK key signing keys(Public and Private) but in reality KSK is created from these AWS KMS keys.
+    these keys should always be in the us-east-1 region
+
+    ZSK zone signing keys are created and managed by R53 internally, KMS isn't involved
+
+    R53 then adds the KSK and ZSK public parts into a DNSkey record within the hosted zone, this tells any DNSSEC resolver which public keys to use to verify the signature on any records withi the hosted zone
+
+    Then the Private KSK is used to sign those DNSKey Records and create RRSIG DNSkey to validate for the DNSSEC resolvers.
+
+    The parent zone needs to have a trust established with the DNS Zone, the parent zone needs to have a DS=delegated signer record which is a hash of the public KSK key
+    This can be done if the domain is registered via R53, then through the console or equivalent cli commands
+    R53 will liase with the top level domain and add the DS records
+    if we have registered the domain through a third party then we need to do this step manually
+
+    CW Alarm for DNSSECInternalFailure and DNSSECKeySigningKeysNeedingAction needs to be established in CW
+
+    DNSSEC validation can also be enabled for VPCs, not valid for non-DNSSEC hosted zones which will return
+
+    > dig animals4life.org dnskey +dnssec
+    to check for any dns key in the hosted zone
+
+    > dig org(can be any) NS +short
+    list of authoritative ns in org top level domain
+
+    > dig animals4life.org DS @host-name-of-ns-tp-level-domain
+
+
+Private Link:
+    allows you to access services in a secure way which are hosted by other AWS accounts, called endpoint services.
+    can be connected via directly or using AWS Marketplace third party tools but it uses private IP addressing and acts in a similar way as services within a VPC
+    Service Endpoint is created in the provider VPC and a NLB is attached to load balance and access the service in cross zones for HA
+    the consumer VPC deploy Interface endpoints which access the service endpoint or the NLB inside it and access the service in a secure way as if it is inside the same VPC
+    sevice consumer ----> service provider
+
+    Highly available via multiple endpoints ----> needs to deploy one in each AZ in VPC ( Service provider)
+    IPv4 and TCP supported ONLY(IPv6 ot supported)
+    Private DNS is supported (overrides the default public dns)
+    just like with interface endpoints, you can also use Private Link with DX, Site2Site VPN and VPC peering
+
+VPC Gateway Endpoint:
+    Provide private access to s3 and dynamodb
+    Allows a private resource in VPC or a resource in a private only VPC to access s3 and dynamodb
+    Gateway endpoints are created per service per region
+    When you associate GW endpoint with the subnets, a prefix list is added to route table pointing to that GW endpoint
+    GW endpoint is in the VPC but chooses which subnets are going to be associated with it using the prefix list so it does not associate with a particular subnet or AZ
+    Endpoint policy is used to control what it can access ( certain bucket in s3 only)
+    can't access cross region services
+    GW Endpoints are not accessible outside the VPC with which it is associated with and can have endpoint policies to control its usage
