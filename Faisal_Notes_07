@@ -108,3 +108,24 @@ Weighted Routing:
 	Assign record weights, distribute traffic according to the weight of a single record versus the total weight
 	Setting record weight to 0 means you don't want this reord to be returned, but if you set all records to 0 means you want all records to be returned
 	Health checks can repeat the process of getting the right weighted record if its healthy only, they don't remove the health weights from the calculations and don't adjust the total weight
+
+Latency Based Routing:
+	Supports one record with the same name in each region in a hosted zone
+	It has a database in the background which has stored the different amount of latencies and lookup the DB when a request is made.
+	It decides which latency is best suited for the request based on the lowest latency and health checks.
+	Optimize performance and user experience
+
+GeoLocation Routing:
+	Route traffic based on the location of you customers.
+	Records are tagged based on the ISO location tags such as based on countries, continents, default and sub-division(states in America)
+	An IP check verifies the location of the user ( can be user or the resolver server )
+	It doesn't return the closest record only the relevant record
+	Can be used to provide language specific content or load balance across regional endpoints
+	sub-division ---> country ---> continent --->default
+
+GeoProximity Routing:
+	Provide records which are as close to the customers as possible
+	Just like latency based routing but it calculates distance between records and customer unlike latencies and delivers the lowest distant records
+	Provide region if AWS resource or Longitude and Latitude if its an external resource and R53 knows about the resource to implement geoproximity
+	We can use Bias to manipulate the distance and hence divert traffic to our wish by including a "+" increase or "-" decrease
+	By increasing the bias we can make the region or location larger than it is and hence lesson the distance to divert traffic to it
