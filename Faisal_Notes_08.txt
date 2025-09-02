@@ -45,7 +45,23 @@ VPC Gateway Endpoint:
     Allows a private resource in VPC or a resource in a private only VPC to access s3 and dynamodb
     Gateway endpoints are created per service per region
     When you associate GW endpoint with the subnets, a prefix list is added to route table pointing to that GW endpoint
-    GW endpoint is in the VPC but chooses which subnets are going to be associated with it using the prefix list so it does not associate with a particular subnet or AZ
+    GW endpoint is in the VPC but chooses which subnets are going to be associated with it using the prefix list so it does not associate with      a particular subnet or AZ
     Endpoint policy is used to control what it can access ( certain bucket in s3 only)
     can't access cross region services
     GW Endpoints are not accessible outside the VPC with which it is associated with and can have endpoint policies to control its usage
+
+VPC Interface Endpoints:
+	Used for all other services except DynamoDb
+	Unlike GW endpoints, they are added inside a specific subnet so they are not HA by default
+	For HA, add one endpoint to one subnet in each AZ per VPC
+	Network access can be controlled via SGs
+	Endpoint Polices just like GW endpoints to control what can be done with the endpoint
+	Only support TCP and Ipv4 (no ipv6)
+	Uses PrivateLink (AWS services or 3rd party services injected into the private VPC) behind the scenes
+
+	You get a DNS name for the service for which you create an Interface endpoint.
+	That name can be used to access the service via the interface endpoint
+	Can be given different DNS names:
+		Regional DNS ---> One single DNS name which works with whatever AZ you are using to access the interface endpoint.
+		Zonal DNS ----> specific endpoint in the specific 
+		Private DNS ---> overrides the default DNS for services, associate R53 private hosted zone with the VPC consisting of replacement   record for the default DNS
