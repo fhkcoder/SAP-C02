@@ -64,4 +64,13 @@ VPC Interface Endpoints:
 	Can be given different DNS names:
 		Regional DNS ---> One single DNS name which works with whatever AZ you are using to access the interface endpoint.
 		Zonal DNS ----> specific endpoint in the specific 
-		Private DNS ---> overrides the default DNS for services, associate R53 private hosted zone with the VPC consisting of replacement   record for the default DNS
+		Private DNS ---> overrides the default DNS for services, associate R53 private hosted zone with the VPC consisting of replacement   							 record for the default DNS
+
+VPC Endpoint Policies:
+	Allows access to a service in a region only if the service supports endpoint
+	Limits access via that endpoint only
+	Commonly used to limit what a private VPC can access
+	VPC endpoints have a Unique endpoint identifier
+	check for conditions in resource policies such as s3:
+		aws:sourceVpce ---> if VPC endpoints are in question to allow or deny
+		aws:sourceIp   ---> if specific trusted IPs are only allowed (you can deny as well) ONLY FOR THE EXTERNAL IPS
