@@ -74,3 +74,17 @@ VPC Endpoint Policies:
 	check for conditions in resource policies such as s3:
 		aws:sourceVpce ---> if VPC endpoints are in question to allow or deny
 		aws:sourceIp   ---> if specific trusted IPs are only allowed (you can deny as well) ONLY FOR THE EXTERNAL IPS
+
+VPC DNS and DNS Endpoints:
+	An IP address is reserved for DNS in a VPC.
+	DNS via the VPC.2 Address or 10.16.0.2 (for a VPC with cidr 10.16.0.0/16)
+	.2 is also reserved in every subnet, now refered to as R53 Resolver
+	VPC can acccess Public or private hosted zones through this address
+	Only accessible from within VPC
+	hybrid network integration is problematic, inbound and outbound
+	DNS forwarder on ec2 instance for hybrid (aws+on-premise) dns environment before R53 endpoints
+
+	R53 Resolver endpoints are VPC Endpoints (ENIs) accessible over VPN or DX
+	inbound endpoint = on-premise can forward to R53 reolver
+	Outbound endpoint = r53 to on-premise, conditional forwarders
+	Rules control what requests are forwarded
